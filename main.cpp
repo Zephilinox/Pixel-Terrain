@@ -14,9 +14,9 @@ class PixelShape : public sf::Drawable
 {
 public:
 
-    PixelShape(sf::Vector2i size, sf::Vector2f pos)
+    PixelShape(sf::Vector2i size, sf::Vector2f pos, sf::Color c)
     {
-        m_image.create(size.x, size.y, sf::Color::Red);
+        m_image.create(size.x, size.y, c);
         m_texture.loadFromImage(m_image);
         m_sprite.setTexture(m_texture);
         m_sprite.setPosition(pos);
@@ -61,7 +61,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "Pixel Terrain");
     window.setVerticalSyncEnabled(true);
 
-    PixelShape terrain(sf::Vector2i(400, 400), sf::Vector2f(400, 400));
+    PixelShape terrain1(sf::Vector2i(200, 200), sf::Vector2f(0, 0), sf::Color::Red);
+    PixelShape terrain2(sf::Vector2i(200, 200), sf::Vector2f(200, 0), sf::Color::Blue);
+    PixelShape terrain3(sf::Vector2i(200, 200), sf::Vector2f(200, 200), sf::Color::Green);
+    PixelShape terrain4(sf::Vector2i(200, 200), sf::Vector2f(0, 200), sf::Color::Yellow);
 
     sf::Event event;
     sf::Time prevFrameTime(sf::seconds(1.f / 60.f));
@@ -80,7 +83,10 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    terrain.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
+                    terrain1.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
+                    terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
+                    terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
+                    terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
                 }
 
                 case sf::Event::KeyPressed:
@@ -96,7 +102,10 @@ int main()
 
         window.clear(sf::Color(40, 40, 40));
 
-        window.draw(terrain);
+        window.draw(terrain1);
+        window.draw(terrain2);
+        window.draw(terrain3);
+        window.draw(terrain4);
 
         window.display();
 
