@@ -29,6 +29,8 @@ public:
 
     void destroy(sf::Vector2i pos, int radius)
     {
+        bool modified = false;
+
         for (int x = 0; x < int(m_image.getSize().x); ++x)
         {
             for (int y = 0; y < int(m_image.getSize().y); ++y)
@@ -40,12 +42,16 @@ public:
                     sf::Color p = m_image.getPixel(x, y);
                     p.a = 0;
                     m_image.setPixel(x, y, p);
+                    modified = true;
                 }
             }
         }
 
-        m_texture.loadFromImage(m_image);
-        m_sprite.setTexture(m_texture, true);
+        if (modified)
+        {
+            m_texture.loadFromImage(m_image);
+            m_sprite.setTexture(m_texture, true);
+        }
     }
 
 private:
