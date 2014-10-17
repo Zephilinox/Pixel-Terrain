@@ -14,12 +14,12 @@ class PixelShape : public sf::Drawable
 {
 public:
 
-    PixelShape()
+    PixelShape(sf::Vector2i size, sf::Vector2f pos)
     {
-        m_image.create(100, 100, sf::Color::Red);
+        m_image.create(size.x, size.y, sf::Color::Red);
         m_texture.loadFromImage(m_image);
         m_sprite.setTexture(m_texture);
-        m_sprite.setPosition(100, 100);
+        m_sprite.setPosition(pos);
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
@@ -29,21 +29,23 @@ public:
 
     void destroy(sf::Vector2i pos, int radius)
     {
-        for (int x = pos.x - radius/2; x < pos.x + radius/2; ++x)
+        for (int x = 0; x < int(m_image.getSize().x); ++x)
         {
-            for (int y = pos.y - radius/2; y < pos.y + radius/2; ++y)
+            for (int y = 0; y < int(m_image.getSize().y); ++y)
             {
-                if (x >= m_sprite.getPosition().x && x < m_sprite.getPosition().x + m_image.getSize().x &&
-                    y >= m_sprite.getPosition().y && y < m_sprite.getPosition().y + m_image.getSize().y)
+                int a = x - pos.x + m_sprite.getPosition().x;
+                int b = y - pos.y + m_sprite.getPosition().y;
+                if (a*a + b*b <= radius*radius)
                 {
-                    sf::Color p = m_image.getPixel(x - m_sprite.getPosition().x, y - m_sprite.getPosition().y);
+                    sf::Color p = m_image.getPixel(x, y);
                     p.a = 0;
-                    m_image.setPixel(x - m_sprite.getPosition().x, y - m_sprite.getPosition().y, p);
-                    m_texture.loadFromImage(m_image);
-                    m_sprite.setTexture(m_texture, true);
+                    m_image.setPixel(x, y, p);
                 }
             }
         }
+
+        m_texture.loadFromImage(m_image);
+        m_sprite.setTexture(m_texture, true);
     }
 
 private:
@@ -59,7 +61,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "Pixel Terrain");
     window.setVerticalSyncEnabled(true);
 
-    PixelShape terrain;
+    PixelShape terrain(sf::Vector2i(400, 400), sf::Vector2f(400, 400));
 
     sf::Event event;
     sf::Time prevFrameTime(sf::seconds(1.f / 60.f));
@@ -78,7 +80,7 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    terrain.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 10);
+                    terrain.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
                 }
 
                 case sf::Event::KeyPressed:
@@ -91,7 +93,6 @@ int main()
                 }
             }
         }
-
 
         window.clear(sf::Color(40, 40, 40));
 
