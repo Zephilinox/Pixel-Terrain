@@ -140,10 +140,15 @@ void drawCollisionIntersection(const Player& player, const PixelShape& pixelShap
     {
         float interLeft   = std::max(plyRect.left, shapeRect.left);
         float interTop    = std::max(plyRect.top, shapeRect.top);
-        //interLeft -= pixelShape.getSprite().getPosition().x;
-        //interTop -= pixelShape.getSprite().getPosition().y;
         float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
         float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
+
+        /* //Uncomment to view intersection relative to (0, 0) which is used for pixel checking the image
+        interLeft -= pixelShape.getSprite().getPosition().x;
+        interRight -= pixelShape.getSprite().getPosition().x;
+        interTop -= pixelShape.getSprite().getPosition().y;
+        interBottom -= pixelShape.getSprite().getPosition().y;
+        */
 
         sf::RectangleShape rs;
         rs.setPosition(sf::Vector2f(interLeft, interTop));
@@ -167,18 +172,20 @@ bool checkCollision(const Player& player, const PixelShape& pixelShape)
     {
         float interLeft   = std::max(plyRect.left, shapeRect.left);
         float interTop    = std::max(plyRect.top, shapeRect.top);
-        interLeft -= pixelShape.getSprite().getPosition().x; //subtract the position in order to make it relative to the pixels of the image at (0, 0)
-        interTop -= pixelShape.getSprite().getPosition().y;
-        //float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
-        //float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
+        float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
+        float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
 
         const sf::Image shapePixels = pixelShape.getImage();
         bool transparent = true;
 
-        //This for loop is incorrect, but it kinda works going SE to NW?
-        for (unsigned int x = interLeft; x < shapePixels.getSize().x; ++x)
+        interLeft -= pixelShape.getSprite().getPosition().x; //subtract the position in order to make it relative to the pixels of the image at (0, 0)
+        interRight -= pixelShape.getSprite().getPosition().x;
+        interTop -= pixelShape.getSprite().getPosition().y;
+        interBottom -= pixelShape.getSprite().getPosition().y;
+
+        for (unsigned int x = interLeft; x < interRight; ++x)
         {
-            for (unsigned int y = interTop; y < shapePixels.getSize().y; ++y)
+            for (unsigned int y = interTop; y < interBottom; ++y)
             {
                 if (shapePixels.getPixel(x, y).a > 0)
                 {
