@@ -130,6 +130,18 @@ private:
 
 bool checkCollision(const Player& player, const PixelShape& pixelShape)
 {
+    const sf::RectangleShape rect = player.getRectShape();
+    const sf::Sprite shape = pixelShape.getSprite();
+
+    sf::FloatRect plyRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
+    sf::FloatRect shapeRect(shape.getPosition().x, shape.getPosition().y, shape.getTexture()->getSize().x, shape.getTexture()->getSize().y);
+
+    if (plyRect.intersects(shapeRect))
+    {
+
+        return true;
+    }
+
     return false;
 }
 
@@ -179,12 +191,21 @@ int main()
             }
         }
 
-        if (!(checkCollision(player, terrain1) &&
-              checkCollision(player, terrain2) &&
-              checkCollision(player, terrain3) &&
-              checkCollision(player, terrain4)))
+        if (!checkCollision(player, terrain1) &&
+            !checkCollision(player, terrain2) &&
+            !checkCollision(player, terrain3) &&
+            !checkCollision(player, terrain4))
         {
-            player.update(prevFrameTime.asSeconds());
+            Player player2 = player;
+            player2.update(prevFrameTime.asSeconds());
+
+            if (!checkCollision(player2, terrain1) &&
+                !checkCollision(player2, terrain2) &&
+                !checkCollision(player2, terrain3) &&
+                !checkCollision(player2, terrain4))
+            {
+                player = player2;
+            }
         }
 
         window.clear(sf::Color(40, 40, 40));
