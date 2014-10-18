@@ -54,11 +54,84 @@ public:
         }
     }
 
+    const sf::Image& getImage() const {return m_image;}
+    const sf::Sprite& getSprite() const {return m_sprite;}
+
 private:
     sf::Image m_image;
     sf::Texture m_texture;
     sf::Sprite m_sprite;
 };
+
+class Player : public sf::Drawable
+{
+public:
+    Player()
+        : m_dir(0, 0)
+    {
+        m_sprite.setSize(sf::Vector2f(32, 32));
+        m_sprite.setOutlineThickness(1);
+        m_sprite.setPosition(500, 500);
+    }
+
+    void handleEvent(const sf::Event& event)
+    {
+        switch (event.type)
+        {
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    void update(float dt)
+    {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+        {
+            m_dir.y = -1;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+        {
+            m_dir.y = 1;
+        }
+        else
+        {
+            m_dir.y = 0;
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+        {
+            m_dir.x = -1;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+        {
+            m_dir.x = 1;
+        }
+        else
+        {
+            m_dir.x = 0;
+        }
+
+        m_sprite.move(m_dir.x * 100 * dt, m_dir.y * 100 * dt); //shitty but functional for the moment
+    }
+
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+    {
+        target.draw(m_sprite, states);
+    }
+
+    const sf::RectangleShape& getRectShape() const {return m_sprite;}
+
+private:
+    sf::RectangleShape m_sprite;
+    sf::Vector2f m_dir;
+};
+
+bool checkCollision(const Player& player, const PixelShape& pixelShape)
+{
+    return false;
+}
 
 int main()
 {
@@ -67,6 +140,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(800, 800, 32), "Pixel Terrain");
     window.setVerticalSyncEnabled(true);
 
+    Player player;
     PixelShape terrain1(sf::Vector2i(200, 200), sf::Vector2f(0, 0), sf::Color::Red);
     PixelShape terrain2(sf::Vector2i(200, 200), sf::Vector2f(200, 0), sf::Color::Blue);
     PixelShape terrain3(sf::Vector2i(200, 200), sf::Vector2f(200, 200), sf::Color::Green);
@@ -79,6 +153,8 @@ int main()
     {
         while (window.pollEvent(event))
         {
+            player.handleEvent(event);
+
             switch(event.type)
             {
                 case sf::Event::Closed:
@@ -93,10 +169,7 @@ int main()
                     terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
                     terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
                     terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
-                }
-
-                case sf::Event::KeyPressed:
-                {
+                    break;
                 }
 
                 default:
@@ -106,12 +179,21 @@ int main()
             }
         }
 
+        if (!(checkCollision(player, terrain1) &&
+              checkCollision(player, terrain2) &&
+              checkCollision(player, terrain3) &&
+              checkCollision(player, terrain4)))
+        {
+            player.update(prevFrameTime.asSeconds());
+        }
+
         window.clear(sf::Color(40, 40, 40));
 
         window.draw(terrain1);
         window.draw(terrain2);
         window.draw(terrain3);
         window.draw(terrain4);
+        window.draw(player);
 
         window.display();
 
