@@ -233,10 +233,10 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    terrain1.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
-                    terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
-                    terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
-                    terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 100);
+                    terrain1.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
                     break;
                 }
 
@@ -278,7 +278,7 @@ int main()
 
         window.display();
 
-        std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
+        //std::cout << "FPS: " << 1.f / prevFrameTime.asSeconds() << "\n";
         prevFrameTime = frameClock.restart();
     }
 

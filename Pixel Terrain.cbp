@@ -43,6 +43,9 @@
 			<Add directory="Z:/Programming/C++/SFML-2.1/include" />
 		</Compiler>
 		<Linker>
+			<Add option="-static" />
+			<Add option="-static-libstdc++" />
+			<Add option="-static-libgcc" />
 			<Add directory="Z:/Programming/C++/SFML-2.1/lib" />
 		</Linker>
 		<Unit filename="main.cpp" />
