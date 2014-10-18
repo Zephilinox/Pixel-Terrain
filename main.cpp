@@ -29,6 +29,20 @@ public:
 
     void destroy(sf::Vector2i pos, int radius)
     {
+        setCircleAlpha(pos, radius, 0);
+    }
+
+    void create(sf::Vector2i pos, int radius)
+    {
+        setCircleAlpha(pos, radius, 255);
+    }
+
+    const sf::Image& getImage() const {return m_image;}
+    const sf::Sprite& getSprite() const {return m_sprite;}
+
+private:
+    void setCircleAlpha(sf::Vector2i pos, int radius, int alpha)
+    {
         bool modified = false;
 
         for (int x = 0; x < int(m_image.getSize().x); ++x)
@@ -40,7 +54,7 @@ public:
                 if (a*a + b*b <= radius*radius)
                 {
                     sf::Color p = m_image.getPixel(x, y);
-                    p.a = 0;
+                    p.a = alpha;
                     m_image.setPixel(x, y, p);
                     modified = true;
                 }
@@ -54,10 +68,6 @@ public:
         }
     }
 
-    const sf::Image& getImage() const {return m_image;}
-    const sf::Sprite& getSprite() const {return m_sprite;}
-
-private:
     sf::Image m_image;
     sf::Texture m_texture;
     sf::Sprite m_sprite;
@@ -233,10 +243,21 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                 {
-                    terrain1.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
-                    terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
-                    terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
-                    terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                    {
+                        terrain1.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain2.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain3.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain4.destroy(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    }
+                    else
+                    {
+                        terrain1.create(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain2.create(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain3.create(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                        terrain4.create(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 50);
+                    }
+
                     break;
                 }
 
