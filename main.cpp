@@ -128,6 +128,33 @@ private:
     sf::Vector2f m_dir;
 };
 
+void drawCollisionIntersection(const Player& player, const PixelShape& pixelShape, sf::RenderTarget& target)
+{
+    const sf::RectangleShape rect = player.getRectShape();
+    const sf::Sprite shape = pixelShape.getSprite();
+
+    sf::FloatRect plyRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
+    sf::FloatRect shapeRect(shape.getPosition().x, shape.getPosition().y, shape.getTexture()->getSize().x, shape.getTexture()->getSize().y);
+
+    if (plyRect.intersects(shapeRect))
+    {
+        float interLeft   = std::max(plyRect.left, shapeRect.left);
+        float interTop    = std::max(plyRect.top, shapeRect.top);
+        //interLeft -= pixelShape.getSprite().getPosition().x;
+        //interTop -= pixelShape.getSprite().getPosition().y;
+        float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
+        float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
+
+        sf::RectangleShape rs;
+        rs.setPosition(sf::Vector2f(interLeft, interTop));
+        rs.setSize(sf::Vector2f(interRight - interLeft, interBottom - interTop));
+        rs.setOutlineThickness(1);
+        rs.setFillColor(sf::Color(255, 0, 255));
+        target.draw(rs);
+    }
+
+}
+
 bool checkCollision(const Player& player, const PixelShape& pixelShape)
 {
     const sf::RectangleShape rect = player.getRectShape();
@@ -138,8 +165,30 @@ bool checkCollision(const Player& player, const PixelShape& pixelShape)
 
     if (plyRect.intersects(shapeRect))
     {
+        float interLeft   = std::max(plyRect.left, shapeRect.left);
+        float interTop    = std::max(plyRect.top, shapeRect.top);
+        interLeft -= pixelShape.getSprite().getPosition().x; //subtract the position in order to make it relative to the pixels of the image at (0, 0)
+        interTop -= pixelShape.getSprite().getPosition().y;
+        //float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
+        //float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
 
-        return true;
+        const sf::Image shapePixels = pixelShape.getImage();
+        bool transparent = true;
+
+        //This for loop is incorrect, but it kinda works going SE to NW?
+        for (unsigned int x = interLeft; x < shapePixels.getSize().x; ++x)
+        {
+            for (unsigned int y = interTop; y < shapePixels.getSize().y; ++y)
+            {
+                if (shapePixels.getPixel(x, y).a > 0)
+                {
+                    transparent = false;
+                    break;
+                }
+            }
+        }
+
+        return !transparent;
     }
 
     return false;
@@ -215,6 +264,10 @@ int main()
         window.draw(terrain3);
         window.draw(terrain4);
         window.draw(player);
+        drawCollisionIntersection(player, terrain1, window);
+        drawCollisionIntersection(player, terrain2, window);
+        drawCollisionIntersection(player, terrain3, window);
+        drawCollisionIntersection(player, terrain4, window);
 
         window.display();
 
