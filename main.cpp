@@ -37,8 +37,8 @@ public:
         setCircleAlpha(pos, radius, 255);
     }
 
-    const sf::Image& getImage() const {return m_image;}
-    const sf::Sprite& getSprite() const {return m_sprite;}
+    sf::Image& getImage() {return m_image;}
+    sf::Sprite& getSprite() {return m_sprite;}
 
 private:
     void setCircleAlpha(sf::Vector2i pos, int radius, int alpha)
@@ -77,11 +77,12 @@ class Player : public sf::Drawable
 {
 public:
     Player()
-        : m_dir(0, 0)
+        : m_shape(sf::Vector2i(32, 32), sf::Vector2f(500, 500), sf::Color::White)
+        , m_dir(0, 0)
     {
-        m_sprite.setSize(sf::Vector2f(32, 32));
-        m_sprite.setOutlineThickness(1);
-        m_sprite.setPosition(500, 500);
+        m_shape.getSprite().setPosition(500, 500);
+        m_shape.destroy(sf::Vector2i(516, 516), 32);
+        m_shape.create(sf::Vector2i(516, 516), 16);
     }
 
     void handleEvent(const sf::Event& event)
@@ -123,89 +124,129 @@ public:
             m_dir.x = 0;
         }
 
-        m_sprite.move(m_dir.x * 100 * dt, m_dir.y * 100 * dt); //shitty but functional for the moment
+        m_shape.getSprite().move(m_dir.x * 100 * dt, m_dir.y * 100 * dt); //shitty but functional for the moment
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
     {
-        target.draw(m_sprite, states);
+        target.draw(m_shape, states);
     }
 
-    const sf::RectangleShape& getRectShape() const {return m_sprite;}
+    PixelShape& getShape() {return m_shape;}
 
 private:
-    sf::RectangleShape m_sprite;
+    PixelShape m_shape;
     sf::Vector2f m_dir;
 };
 
-void drawCollisionIntersection(const Player& player, const PixelShape& pixelShape, sf::RenderTarget& target)
+void drawCollisionIntersection(PixelShape& pixelShape1, PixelShape& pixelShape2, sf::RenderTarget& target)
 {
-    const sf::RectangleShape rect = player.getRectShape();
-    const sf::Sprite shape = pixelShape.getSprite();
+    sf::Sprite shape1 = pixelShape1.getSprite();
+    sf::Sprite shape2 = pixelShape2.getSprite();
 
-    sf::FloatRect plyRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
-    sf::FloatRect shapeRect(shape.getPosition().x, shape.getPosition().y, shape.getTexture()->getSize().x, shape.getTexture()->getSize().y);
+    sf::FloatRect shapeRect1(shape1.getPosition().x, shape1.getPosition().y, shape1.getTexture()->getSize().x, shape1.getTexture()->getSize().y);
+    sf::FloatRect shapeRect2(shape2.getPosition().x, shape2.getPosition().y, shape2.getTexture()->getSize().x, shape2.getTexture()->getSize().y);
 
-    if (plyRect.intersects(shapeRect))
+    if (shapeRect1.intersects(shapeRect2))
     {
-        float interLeft   = std::max(plyRect.left, shapeRect.left);
-        float interTop    = std::max(plyRect.top, shapeRect.top);
-        float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
-        float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
+        float interLeft   = std::max(shapeRect1.left, shapeRect2.left);
+        float interTop    = std::max(shapeRect1.top, shapeRect2.top);
+        float interRight  = std::min(shapeRect1.left + shapeRect1.width, shapeRect2.left + shapeRect2.width);
+        float interBottom = std::min(shapeRect1.top + shapeRect1.height, shapeRect2.top + shapeRect2.height);
 
         /* //Uncomment to view intersection relative to (0, 0) which is used for pixel checking the image
-        interLeft -= pixelShape.getSprite().getPosition().x;
-        interRight -= pixelShape.getSprite().getPosition().x;
-        interTop -= pixelShape.getSprite().getPosition().y;
-        interBottom -= pixelShape.getSprite().getPosition().y;
+        interLeft -= shape2.getPosition().x;
+        interRight -= shape2.getPosition().x;
+        interTop -= shape2.getPosition().y;
+        interBottom -= shape2.getPosition().y;
         */
 
         sf::RectangleShape rs;
         rs.setPosition(sf::Vector2f(interLeft, interTop));
         rs.setSize(sf::Vector2f(interRight - interLeft, interBottom - interTop));
         rs.setOutlineThickness(1);
-        rs.setFillColor(sf::Color(255, 0, 255));
+        rs.setFillColor(sf::Color(255, 0, 255, 100));
         target.draw(rs);
     }
 
 }
 
-bool checkCollision(const Player& player, const PixelShape& pixelShape)
+bool checkCollision(PixelShape& pixelShape1, PixelShape& pixelShape2)
 {
-    const sf::RectangleShape rect = player.getRectShape();
-    const sf::Sprite shape = pixelShape.getSprite();
+    sf::Sprite shape1 = pixelShape1.getSprite();
+    sf::Sprite shape2 = pixelShape2.getSprite();
 
-    sf::FloatRect plyRect(rect.getPosition().x, rect.getPosition().y, rect.getSize().x, rect.getSize().y);
-    sf::FloatRect shapeRect(shape.getPosition().x, shape.getPosition().y, shape.getTexture()->getSize().x, shape.getTexture()->getSize().y);
+    sf::FloatRect shapeRect1(shape1.getPosition().x, shape1.getPosition().y, shape1.getTexture()->getSize().x, shape1.getTexture()->getSize().y);
+    sf::FloatRect shapeRect2(shape2.getPosition().x, shape2.getPosition().y, shape2.getTexture()->getSize().x, shape2.getTexture()->getSize().y);
 
-    if (plyRect.intersects(shapeRect))
+    if (shapeRect1.intersects(shapeRect2))
     {
-        float interLeft   = std::max(plyRect.left, shapeRect.left);
-        float interTop    = std::max(plyRect.top, shapeRect.top);
-        float interRight  = std::min(plyRect.left + plyRect.width, shapeRect.left + shapeRect.width);
-        float interBottom = std::min(plyRect.top + plyRect.height, shapeRect.top + shapeRect.height);
+        float interLeft   = std::max(shapeRect1.left, shapeRect2.left);
+        float interTop    = std::max(shapeRect1.top, shapeRect2.top);
+        float interRight  = std::min(shapeRect1.left + shapeRect1.width, shapeRect2.left + shapeRect2.width);
+        float interBottom = std::min(shapeRect1.top + shapeRect1.height, shapeRect2.top + shapeRect2.height);
 
-        const sf::Image shapePixels = pixelShape.getImage();
-        bool transparent = true;
+        sf::FloatRect intersectRelativeRect1(interLeft - shape1.getPosition().x,
+                                             interTop - shape1.getPosition().y,
+                                             interRight - interLeft,
+                                             interBottom - interTop);
 
-        interLeft -= pixelShape.getSprite().getPosition().x; //subtract the position in order to make it relative to the pixels of the image at (0, 0)
-        interRight -= pixelShape.getSprite().getPosition().x;
-        interTop -= pixelShape.getSprite().getPosition().y;
-        interBottom -= pixelShape.getSprite().getPosition().y;
+        sf::FloatRect intersectRelativeRect2(interLeft - shape2.getPosition().x,
+                                             interTop - shape2.getPosition().y,
+                                             interRight - interLeft,
+                                             interBottom - interTop);
 
-        for (unsigned int x = interLeft; x < interRight; ++x)
+        const sf::Image pixelImage1 = pixelShape1.getImage();
+        const sf::Image pixelImage2 = pixelShape2.getImage();
+
+        //width and height are the same for both intersections
+        bool bitmask1[int(intersectRelativeRect1.height)+1][int(intersectRelativeRect1.width)+1];
+        bool bitmask2[int(intersectRelativeRect1.height)+1][int(intersectRelativeRect1.width)+1];
+        for (unsigned int y = 0; y < int(intersectRelativeRect1.height)+1; ++y)
         {
-            for (unsigned int y = interTop; y < interBottom; ++y)
+            for (unsigned int x = 0; x < int(intersectRelativeRect1.width)+1; ++x)
             {
-                if (shapePixels.getPixel(x, y).a > 0)
+                bitmask1[y][x] = false;
+                bitmask2[y][x] = false;
+            }
+        }
+
+        for (unsigned int x = intersectRelativeRect1.left; x < intersectRelativeRect1.left + intersectRelativeRect1.width; ++x)
+        {
+            for (unsigned int y = intersectRelativeRect1.top; y < intersectRelativeRect1.top + intersectRelativeRect1.height; ++y)
+            {
+                if (pixelImage1.getPixel(x, y).a > 0)
                 {
-                    transparent = false;
-                    break;
+                    //std::cout << int(y - intersectRelativeRect1.top) << ", " << int(x - intersectRelativeRect1.left) << "\n";
+                    //std::cout << int(intersectRelativeRect1.height)+1 << ", " << int(intersectRelativeRect1.width)+1 << "\n\n";
+                    bitmask1[int(y - intersectRelativeRect1.top)][int(x - intersectRelativeRect1.left)] = true;
                 }
             }
         }
 
-        return !transparent;
+        for (unsigned int x = intersectRelativeRect2.left; x < intersectRelativeRect2.left + intersectRelativeRect2.width; ++x)
+        {
+            for (unsigned int y = intersectRelativeRect2.top; y < intersectRelativeRect2.top + intersectRelativeRect2.height; ++y)
+            {
+                if (pixelImage2.getPixel(x, y).a > 0)
+                {
+                    //std::cout << int(y - intersectRelativeRect2.top) << ", " << int(x - intersectRelativeRect2.left) << "\n";
+                    //std::cout << int(intersectRelativeRect2.height)+1 << ", " << int(intersectRelativeRect2.width)+1 << "\n\n";
+                    bitmask2[int(y - intersectRelativeRect2.top)][int(x - intersectRelativeRect2.left)] = true;
+                }
+            }
+        }
+
+        for (int y = 0; y < int(intersectRelativeRect2.height)+1; ++y)
+        {
+            for (int x = 0; x < int(intersectRelativeRect2.width)+1; ++x)
+            {
+                if (bitmask1[y][x] && bitmask2[y][x])
+                {
+                    return true;
+                }
+            }
+        }
     }
 
     return false;
@@ -268,18 +309,18 @@ int main()
             }
         }
 
-        if (!checkCollision(player, terrain1) &&
-            !checkCollision(player, terrain2) &&
-            !checkCollision(player, terrain3) &&
-            !checkCollision(player, terrain4))
+        if (!checkCollision(player.getShape(), terrain1) &&
+            !checkCollision(player.getShape(), terrain2) &&
+            !checkCollision(player.getShape(), terrain3) &&
+            !checkCollision(player.getShape(), terrain4))
         {
             Player player2 = player;
             player2.update(prevFrameTime.asSeconds());
 
-            if (!checkCollision(player2, terrain1) &&
-                !checkCollision(player2, terrain2) &&
-                !checkCollision(player2, terrain3) &&
-                !checkCollision(player2, terrain4))
+            if (!checkCollision(player2.getShape(), terrain1) &&
+                !checkCollision(player2.getShape(), terrain2) &&
+                !checkCollision(player2.getShape(), terrain3) &&
+                !checkCollision(player2.getShape(), terrain4))
             {
                 player = player2;
             }
@@ -292,10 +333,11 @@ int main()
         window.draw(terrain3);
         window.draw(terrain4);
         window.draw(player);
-        drawCollisionIntersection(player, terrain1, window);
-        drawCollisionIntersection(player, terrain2, window);
-        drawCollisionIntersection(player, terrain3, window);
-        drawCollisionIntersection(player, terrain4, window);
+
+        drawCollisionIntersection(player.getShape(), terrain1, window);
+        drawCollisionIntersection(player.getShape(), terrain2, window);
+        drawCollisionIntersection(player.getShape(), terrain3, window);
+        drawCollisionIntersection(player.getShape(), terrain4, window);
 
         window.display();
 
